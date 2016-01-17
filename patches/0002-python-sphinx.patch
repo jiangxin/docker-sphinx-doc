@@ -1,0 +1,417 @@
+From 505911585c3ca2f86868b579f6da9e520f578a77 Mon Sep 17 00:00:00 2001
+From: root <test@foo.bar>
+Date: Sun, 17 Jan 2016 10:02:04 +0800
+Subject: [PATCH] python-sphinx: No prefix '_' for sphinx build output
+ directories
+
+[This hack is based on sphinx 1.2.3.]
+[Base path: /usr/lib/python2.7/dist-packages/sphinx]
+
+Some phinx output dirs has a prefix such as '_static', '_sources',
+'_images', '_downloads'. Because GitHub website host does not like
+directories with a '_' prefix, and these paths are hard-coded (can
+not be changed through config files), so comes this workaround.
+
+This patch change the hard-coded dirs from '_static', '_images',
+'_sources', '_downloads' to 'static', 'images', 'sources', and
+'downloads'.
+
+Signed-off-by: Jiang Xin <worldhello.net@gmail.com>
+---
+ application.py         |  4 ++--
+ builders/epub.py       |  6 +++---
+ builders/html.py       | 42 +++++++++++++++++++++---------------------
+ builders/htmlhelp.py   |  2 +-
+ builders/qthelp.py     |  4 ++--
+ builders/websupport.py | 12 ++++++------
+ environment.py         |  2 +-
+ ext/graphviz.py        |  2 +-
+ ext/pngmath.py         |  2 +-
+ quickstart.py          |  6 +++---
+ websupport/__init__.py |  2 +-
+ 11 files changed, 42 insertions(+), 42 deletions(-)
+
+diff --git a/application.py b/application.py
+index 4fb9eb3..44e09f0 100644
+--- a/application.py
++++ b/application.py
+@@ -583,7 +583,7 @@ class Sphinx(object):
+             StandaloneHTMLBuilder.script_files.append(filename)
+         else:
+             StandaloneHTMLBuilder.script_files.append(
+-                posixpath.join('_static', filename))
++                posixpath.join('static', filename))
+ 
+     def add_stylesheet(self, filename):
+         self.debug('[app] adding stylesheet: %r', filename)
+@@ -592,7 +592,7 @@ class Sphinx(object):
+             StandaloneHTMLBuilder.css_files.append(filename)
+         else:
+             StandaloneHTMLBuilder.css_files.append(
+-                posixpath.join('_static', filename))
++                posixpath.join('static', filename))
+ 
+     def add_lexer(self, alias, lexer):
+         self.debug('[app] adding lexer: %r', (alias, lexer))
+diff --git a/builders/epub.py b/builders/epub.py
+index a73679c..00a5960 100644
+--- a/builders/epub.py
++++ b/builders/epub.py
+@@ -405,7 +405,7 @@ class EpubBuilder(StandaloneHTMLBuilder):
+         The method tries to read and write the files with the PIL,
+         converting the format and resizing the image if necessary/possible.
+         """
+-        ensuredir(path.join(self.outdir, '_images'))
++        ensuredir(path.join(self.outdir, 'images'))
+         for src in self.status_iterator(self.images, 'copying images... ',
+                                         brown, len(self.images)):
+             dest = self.images[src]
+@@ -417,7 +417,7 @@ class EpubBuilder(StandaloneHTMLBuilder):
+                               (path.join(self.srcdir, src), ))
+                 try:
+                     copyfile(path.join(self.srcdir, src),
+-                             path.join(self.outdir, '_images', dest))
++                             path.join(self.outdir, 'images', dest))
+                 except (IOError, OSError), err:
+                     self.warn('cannot copy image file %r: %s' %
+                               (path.join(self.srcdir, src), err))
+@@ -433,7 +433,7 @@ class EpubBuilder(StandaloneHTMLBuilder):
+                     nh = (height * nw) / width
+                     img = img.resize((nw, nh), Image.BICUBIC)
+             try:
+-                img.save(path.join(self.outdir, '_images', dest))
++                img.save(path.join(self.outdir, 'images', dest))
+             except (IOError, OSError), err:
+                 self.warn('cannot write image file %r: %s' %
+                           (path.join(self.srcdir, src), err))
+diff --git a/builders/html.py b/builders/html.py
+index 9c039e3..1786377 100644
+--- a/builders/html.py
++++ b/builders/html.py
+@@ -85,8 +85,8 @@ class StandaloneHTMLBuilder(Builder):
+     embedded = False  # for things like HTML help or Qt help: suppresses sidebar
+ 
+     # This is a class attribute because it is mutated by Sphinx.add_javascript.
+-    script_files = ['_static/jquery.js', '_static/underscore.js',
+-                    '_static/doctools.js']
++    script_files = ['static/jquery.js', 'static/underscore.js',
++                    'static/doctools.js']
+     # Dito for this one.
+     css_files = []
+ 
+@@ -118,7 +118,7 @@ class StandaloneHTMLBuilder(Builder):
+ 
+         if self.config.language is not None:
+             if self._get_translations_js():
+-                self.script_files.append('_static/translations.js')
++                self.script_files.append('static/translations.js')
+ 
+     def _get_translations_js(self):
+         candidates = [path.join(package_dir, 'locale', self.config.language,
+@@ -427,8 +427,8 @@ class StandaloneHTMLBuilder(Builder):
+         doctree.settings = self.docsettings
+ 
+         self.secnumbers = self.env.toc_secnumbers.get(docname, {})
+-        self.imgpath = relative_uri(self.get_target_uri(docname), '_images')
+-        self.dlpath = relative_uri(self.get_target_uri(docname), '_downloads')
++        self.imgpath = relative_uri(self.get_target_uri(docname), 'images')
++        self.dlpath = relative_uri(self.get_target_uri(docname), 'downloads')
+         self.current_docname = docname
+         self.docwriter.write(doctree, destination)
+         self.docwriter.assemble_parts()
+@@ -439,7 +439,7 @@ class StandaloneHTMLBuilder(Builder):
+         self.handle_page(docname, ctx, event_arg=doctree)
+ 
+     def write_doc_serialized(self, docname, doctree):
+-        self.imgpath = relative_uri(self.get_target_uri(docname), '_images')
++        self.imgpath = relative_uri(self.get_target_uri(docname), 'images')
+         self.post_process_images(doctree)
+         title = self.env.longtitles.get(docname)
+         title = title and self.render_partial(title)['title'] or ''
+@@ -472,7 +472,7 @@ class StandaloneHTMLBuilder(Builder):
+ 
+         if self.config.html_use_opensearch and self.name != 'htmlhelp':
+             self.info(' opensearch', nonl=1)
+-            fn = path.join(self.outdir, '_static', 'opensearch.xml')
++            fn = path.join(self.outdir, 'static', 'opensearch.xml')
+             self.handle_page('opensearch', {}, 'opensearch.xml', outfilename=fn)
+ 
+         self.info()
+@@ -528,13 +528,13 @@ class StandaloneHTMLBuilder(Builder):
+     def copy_image_files(self):
+         # copy image files
+         if self.images:
+-            ensuredir(path.join(self.outdir, '_images'))
++            ensuredir(path.join(self.outdir, 'images'))
+             for src in self.status_iterator(self.images, 'copying images... ',
+                                             brown, len(self.images)):
+                 dest = self.images[src]
+                 try:
+                     copyfile(path.join(self.srcdir, src),
+-                             path.join(self.outdir, '_images', dest))
++                             path.join(self.outdir, 'images', dest))
+                 except Exception, err:
+                     self.warn('cannot copy image file %r: %s' %
+                               (path.join(self.srcdir, src), err))
+@@ -542,14 +542,14 @@ class StandaloneHTMLBuilder(Builder):
+     def copy_download_files(self):
+         # copy downloadable files
+         if self.env.dlfiles:
+-            ensuredir(path.join(self.outdir, '_downloads'))
++            ensuredir(path.join(self.outdir, 'downloads'))
+             for src in self.status_iterator(self.env.dlfiles,
+                                             'copying downloadable files... ',
+                                             brown, len(self.env.dlfiles)):
+                 dest = self.env.dlfiles[src][1]
+                 try:
+                     copyfile(path.join(self.srcdir, src),
+-                             path.join(self.outdir, '_downloads', dest))
++                             path.join(self.outdir, 'downloads', dest))
+                 except Exception, err:
+                     self.warn('cannot copy downloadable file %r: %s' %
+                               (path.join(self.srcdir, src), err))
+@@ -557,16 +557,16 @@ class StandaloneHTMLBuilder(Builder):
+     def copy_static_files(self):
+         # copy static files
+         self.info(bold('copying static files... '), nonl=True)
+-        ensuredir(path.join(self.outdir, '_static'))
++        ensuredir(path.join(self.outdir, 'static'))
+         # first, create pygments style file
+-        f = open(path.join(self.outdir, '_static', 'pygments.css'), 'w')
++        f = open(path.join(self.outdir, 'static', 'pygments.css'), 'w')
+         f.write(self.highlighter.get_stylesheet())
+         f.close()
+         # then, copy translations JavaScript file
+         if self.config.language is not None:
+             jsfile = self._get_translations_js()
+             if jsfile:
+-                copyfile(jsfile, path.join(self.outdir, '_static',
++                copyfile(jsfile, path.join(self.outdir, 'static',
+                                            'translations.js'))
+ 
+         # add context items for search function used in searchtools.js_t
+@@ -578,7 +578,7 @@ class StandaloneHTMLBuilder(Builder):
+             themeentries = [path.join(themepath, 'static')
+                             for themepath in self.theme.get_dirchain()[::-1]]
+             for entry in themeentries:
+-                copy_static_entry(entry, path.join(self.outdir, '_static'),
++                copy_static_entry(entry, path.join(self.outdir, 'static'),
+                                   self, ctx)
+         # then, copy over all user-supplied static files
+         staticentries = [path.join(self.confdir, spath)
+@@ -591,12 +591,12 @@ class StandaloneHTMLBuilder(Builder):
+             if not path.exists(entry):
+                 self.warn('html_static_path entry %r does not exist' % entry)
+                 continue
+-            copy_static_entry(entry, path.join(self.outdir, '_static'), self,
++            copy_static_entry(entry, path.join(self.outdir, 'static'), self,
+                               ctx, exclude_matchers=matchers)
+         # copy logo and favicon files if not already in static path
+         if self.config.html_logo:
+             logobase = path.basename(self.config.html_logo)
+-            logotarget = path.join(self.outdir, '_static', logobase)
++            logotarget = path.join(self.outdir, 'static', logobase)
+             if not path.isfile(path.join(self.confdir, self.config.html_logo)):
+                 self.warn('logo file %r does not exist' % self.config.html_logo)
+             elif not path.isfile(logotarget):
+@@ -604,7 +604,7 @@ class StandaloneHTMLBuilder(Builder):
+                          logotarget)
+         if self.config.html_favicon:
+             iconbase = path.basename(self.config.html_favicon)
+-            icontarget = path.join(self.outdir, '_static', iconbase)
++            icontarget = path.join(self.outdir, 'static', iconbase)
+             if not path.isfile(path.join(self.confdir, self.config.html_favicon)):
+                 self.warn('favicon file %r does not exist' % self.config.html_favicon)
+             elif not path.isfile(icontarget):
+@@ -786,7 +786,7 @@ class StandaloneHTMLBuilder(Builder):
+             self.warn("error writing file %s: %s" % (outfilename, err))
+         if self.copysource and ctx.get('sourcename'):
+             # copy the source file for the "show source" link
+-            source_name = path.join(self.outdir, '_sources',
++            source_name = path.join(self.outdir, 'sources',
+                                     os_path(ctx['sourcename']))
+             ensuredir(path.dirname(source_name))
+             copyfile(self.env.doc2path(pagename), source_name)
+@@ -971,7 +971,7 @@ class SingleFileHTMLBuilder(StandaloneHTMLBuilder):
+ 
+         if self.config.html_use_opensearch:
+             self.info(' opensearch', nonl=1)
+-            fn = path.join(self.outdir, '_static', 'opensearch.xml')
++            fn = path.join(self.outdir, 'static', 'opensearch.xml')
+             self.handle_page('opensearch', {}, 'opensearch.xml', outfilename=fn)
+ 
+         self.info()
+@@ -1045,7 +1045,7 @@ class SerializingHTMLBuilder(StandaloneHTMLBuilder):
+         # if there is a source file, copy the source file for the
+         # "show source" link
+         if ctx.get('sourcename'):
+-            source_name = path.join(self.outdir, '_sources',
++            source_name = path.join(self.outdir, 'sources',
+                                     os_path(ctx['sourcename']))
+             ensuredir(path.dirname(source_name))
+             copyfile(self.env.doc2path(pagename), source_name)
+diff --git a/builders/htmlhelp.py b/builders/htmlhelp.py
+index 77fcd43..107f3ed 100644
+--- a/builders/htmlhelp.py
++++ b/builders/htmlhelp.py
+@@ -213,7 +213,7 @@ class HTMLHelpBuilder(StandaloneHTMLBuilder):
+                 outdir += os.sep
+             olen = len(outdir)
+             for root, dirs, files in os.walk(outdir):
+-                staticdir = root.startswith(path.join(outdir, '_static'))
++                staticdir = root.startswith(path.join(outdir, 'static'))
+                 for fn in files:
+                     if (staticdir and not fn.endswith('.js')) or \
+                            fn.endswith('.html'):
+diff --git a/builders/qthelp.py b/builders/qthelp.py
+index 1d46284..c83cf63 100644
+--- a/builders/qthelp.py
++++ b/builders/qthelp.py
+@@ -155,8 +155,8 @@ class QtHelpBuilder(StandaloneHTMLBuilder):
+             outdir += os.sep
+         olen = len(outdir)
+         projectfiles = []
+-        staticdir = path.join(outdir, '_static')
+-        imagesdir = path.join(outdir, '_images')
++        staticdir = path.join(outdir, 'static')
++        imagesdir = path.join(outdir, 'images')
+         for root, dirs, files in os.walk(outdir):
+             resourcedir = root.startswith(staticdir) or \
+                           root.startswith(imagesdir)
+diff --git a/builders/websupport.py b/builders/websupport.py
+index 6cf9810..c417ee3 100644
+--- a/builders/websupport.py
++++ b/builders/websupport.py
+@@ -37,7 +37,7 @@ class WebSupportBuilder(PickleHTMLBuilder):
+             raise RuntimeError('websupport builder must be used with '
+                                'the builtin templates')
+         # add our custom JS
+-        self.script_files.append('_static/websupport.js')
++        self.script_files.append('static/websupport.js')
+ 
+     def set_webinfo(self, staticdir, virtual_staticdir, search, storage):
+         self.staticdir = staticdir
+@@ -57,8 +57,8 @@ class WebSupportBuilder(PickleHTMLBuilder):
+         doctree.settings = self.docsettings
+ 
+         self.secnumbers = self.env.toc_secnumbers.get(docname, {})
+-        self.imgpath = '/' + posixpath.join(self.virtual_staticdir, '_images')
+-        self.dlpath = '/' + posixpath.join(self.virtual_staticdir, '_downloads')
++        self.imgpath = '/' + posixpath.join(self.virtual_staticdir, 'images')
++        self.dlpath = '/' + posixpath.join(self.virtual_staticdir, 'downloads')
+         self.current_docname = docname
+         self.docwriter.write(doctree, destination)
+         self.docwriter.assemble_parts()
+@@ -69,7 +69,7 @@ class WebSupportBuilder(PickleHTMLBuilder):
+         self.handle_page(docname, ctx, event_arg=doctree)
+ 
+     def write_doc_serialized(self, docname, doctree):
+-        self.imgpath = '/' + posixpath.join(self.virtual_staticdir, '_images')
++        self.imgpath = '/' + posixpath.join(self.virtual_staticdir, 'images')
+         self.post_process_images(doctree)
+         title = self.env.longtitles.get(docname)
+         title = title and self.render_partial(title)['title'] or ''
+@@ -134,7 +134,7 @@ class WebSupportBuilder(PickleHTMLBuilder):
+         # "show source" link
+         if ctx.get('sourcename'):
+             source_name = path.join(self.staticdir,
+-                                    '_sources',  os_path(ctx['sourcename']))
++                                    'sources',  os_path(ctx['sourcename']))
+             ensuredir(path.dirname(source_name))
+             copyfile(self.env.doc2path(pagename), source_name)
+ 
+@@ -147,7 +147,7 @@ class WebSupportBuilder(PickleHTMLBuilder):
+         PickleHTMLBuilder.handle_finish(self)
+ 
+         # move static stuff over to separate directory
+-        directories = ['_images', '_static']
++        directories = ['images', 'static']
+         for directory in directories:
+             src = path.join(self.outdir, directory)
+             dst = path.join(self.staticdir, directory)
+diff --git a/environment.py b/environment.py
+index 69a8b57..32947c4 100644
+--- a/environment.py
++++ b/environment.py
+@@ -344,7 +344,7 @@ class BuildEnvironment:
+             config.exclude_trees +
+             [d + config.source_suffix for d in config.unused_docs] +
+             ['**/' + d for d in config.exclude_dirnames] +
+-            ['**/_sources', '.#*']
++            ['**/sources', '.#*']
+         )
+         self.found_docs = set(get_matching_docs(
+             self.srcdir, config.source_suffix, exclude_matchers=matchers))
+diff --git a/ext/graphviz.py b/ext/graphviz.py
+index 028560b..db2e207 100644
+--- a/ext/graphviz.py
++++ b/ext/graphviz.py
+@@ -129,7 +129,7 @@ def render_dot(self, code, options, format, prefix='graphviz'):
+     if hasattr(self.builder, 'imgpath'):
+         # HTML
+         relfn = posixpath.join(self.builder.imgpath, fname)
+-        outfn = path.join(self.builder.outdir, '_images', fname)
++        outfn = path.join(self.builder.outdir, 'images', fname)
+     else:
+         # LaTeX
+         relfn = fname
+diff --git a/ext/pngmath.py b/ext/pngmath.py
+index b654630..f2c3b51 100644
+--- a/ext/pngmath.py
++++ b/ext/pngmath.py
+@@ -87,7 +87,7 @@ def render_math(self, math):
+ 
+     shasum = "%s.png" % sha(latex.encode('utf-8')).hexdigest()
+     relfn = posixpath.join(self.builder.imgpath, 'math', shasum)
+-    outfn = path.join(self.builder.outdir, '_images', 'math', shasum)
++    outfn = path.join(self.builder.outdir, 'images', 'math', shasum)
+     if path.isfile(outfn):
+         depth = read_png_depth(outfn)
+         return relfn, depth
+diff --git a/quickstart.py b/quickstart.py
+index 5cf067e..6b13bae 100644
+--- a/quickstart.py
++++ b/quickstart.py
+@@ -169,7 +169,7 @@ html_theme = 'default'
+ # Add any paths that contain custom static files (such as style sheets) here,
+ # relative to this directory. They are copied after the builtin static files,
+ # so a file named "default.css" will overwrite the builtin "default.css".
+-html_static_path = ['%(dot)sstatic']
++html_static_path = ['static']
+ 
+ # Add any extra paths that contain custom files (such as robots.txt or
+ # .htaccess) here, relative to this directory. These files are copied
+@@ -1062,7 +1062,7 @@ Either, you use a directory "_build" within the root path, or you separate
+     if 'dot' not in d:
+         print '''
+ Inside the root directory, two more directories will be created; "_templates"
+-for custom HTML templates and "_static" for custom stylesheets and other static
++for custom HTML templates and "static" for custom stylesheets and other static
+ files. You can enter another prefix (such as ".") to replace the underscore.'''
+         do_prompt(d, 'dot', 'Name prefix for templates and static dir', '_', ok)
+ 
+@@ -1213,7 +1213,7 @@ def generate(d, overwrite=True, silent=False):
+         d['exclude_patterns'] = repr(d['dot'] + 'build')
+     mkdir_p(builddir)
+     mkdir_p(path.join(srcdir, d['dot'] + 'templates'))
+-    mkdir_p(path.join(srcdir, d['dot'] + 'static'))
++    mkdir_p(path.join(srcdir, 'static'))
+ 
+     def write_file(fpath, content, newline=None):
+         if overwrite or not path.isfile(fpath):
+diff --git a/websupport/__init__.py b/websupport/__init__.py
+index 0e9131d..7c8bb50 100644
+--- a/websupport/__init__.py
++++ b/websupport/__init__.py
+@@ -417,7 +417,7 @@ class WebSupport(object):
+             ]
+             for key, value in static_urls:
+                 self.base_comment_opts[key] = \
+-                    '/' + posixpath.join(self.staticroot, '_static', value)
++                    '/' + posixpath.join(self.staticroot, 'static', value)
+ 
+     def _make_comment_options(self, username, moderator):
+         """Helper method to create the parts of the COMMENT_OPTIONS
+-- 
+2.1.4
+

@@ -1,0 +1,217 @@
+From d9faf4b0c47e0876ec8d04d3a4fbc260987c8823 Mon Sep 17 00:00:00 2001
+From: root <root@jessie.foo.bar>
+Date: Sun, 17 Jan 2016 10:14:17 +0800
+Subject: [PATCH] sphinx-common: No prefix '_' for sphinx build output
+ directories
+
+[This hack is based on sphinx 1.2.3.]
+[Base path: /usr/share/sphinx/themes]
+
+Some phinx output dirs has a prefix such as '_static', '_sources',
+'_images', '_downloads'. Because GitHub website host does not like
+directories with a '_' prefix, and these paths are hard-coded (can
+not be changed through config files), so comes this workaround.
+
+This patch change the hard-coded dirs from '_static', '_images',
+'_sources', '_downloads' to 'static', 'images', 'sources', and
+'downloads'.
+
+Signed-off-by: Jiang Xin <worldhello.net@gmail.com>
+---
+ agogo/layout.html          |  2 +-
+ basic/domainindex.html     |  2 +-
+ basic/layout.html          | 10 +++++-----
+ basic/search.html          |  2 +-
+ basic/static/websupport.js | 16 ++++++++--------
+ default/layout.html        |  2 +-
+ haiku/layout.html          |  4 ++--
+ pyramid/layout.html        |  4 ++--
+ pyramid/static/ie6.css     |  2 +-
+ scrolls/layout.html        |  4 ++--
+ 10 files changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/agogo/layout.html b/agogo/layout.html
+index c6960fb..978dcf7 100644
+--- a/agogo/layout.html
++++ b/agogo/layout.html
+@@ -15,7 +15,7 @@
+       <div class="header">
+         {%- if logo %}
+           <p class="logo"><a href="{{ pathto(master_doc) }}">
+-            <img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
++            <img class="logo" src="{{ pathto('static/' + logo, 1) }}" alt="Logo"/>
+           </a></p>
+         {%- endif %}
+         {%- block headertitle %}
+diff --git a/basic/domainindex.html b/basic/domainindex.html
+index ac5aed9..8dd2c52 100644
+--- a/basic/domainindex.html
++++ b/basic/domainindex.html
+@@ -39,7 +39,7 @@
+              in entries %}
+      <tr{% if grouptype == 2 %} class="cg-{{ groupid.current() }}"{% endif %}>
+        <td>{% if grouptype == 1 -%}
+-         <img src="{{ pathto('_static/minus.png', 1) }}" class="toggler"
++         <img src="{{ pathto('static/minus.png', 1) }}" class="toggler"
+               id="toggle-{{ groupid.next() }}" style="display: none" alt="-" />
+            {%- endif %}</td>
+        <td>{% if grouptype == 2 %}&nbsp;&nbsp;&nbsp;{% endif %}
+diff --git a/basic/layout.html b/basic/layout.html
+index f01c3aa..e56adfa 100644
+--- a/basic/layout.html
++++ b/basic/layout.html
+@@ -52,7 +52,7 @@
+           {%- block sidebarlogo %}
+           {%- if logo %}
+             <p class="logo"><a href="{{ pathto(master_doc) }}">
+-              <img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
++              <img class="logo" src="{{ pathto('static/' + logo, 1) }}" alt="Logo"/>
+             </a></p>
+           {%- endif %}
+           {%- endblock %}
+@@ -100,8 +100,8 @@
+ {%- endmacro %}
+ 
+ {%- macro css() %}
+-    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+-    <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
++    <link rel="stylesheet" href="{{ pathto('static/' + style, 1) }}" type="text/css" />
++    <link rel="stylesheet" href="{{ pathto('static/pygments.css', 1) }}" type="text/css" />
+     {%- for cssfile in css_files %}
+     <link rel="stylesheet" href="{{ pathto(cssfile, 1) }}" type="text/css" />
+     {%- endfor %}
+@@ -120,10 +120,10 @@
+     {%- if use_opensearch %}
+     <link rel="search" type="application/opensearchdescription+xml"
+           title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
+-          href="{{ pathto('_static/opensearch.xml', 1) }}"/>
++          href="{{ pathto('static/opensearch.xml', 1) }}"/>
+     {%- endif %}
+     {%- if favicon %}
+-    <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
++    <link rel="shortcut icon" href="{{ pathto('static/' + favicon, 1) }}"/>
+     {%- endif %}
+     {%- endif %}
+ {%- block linktags %}
+diff --git a/basic/search.html b/basic/search.html
+index 4a79ace..62119b4 100644
+--- a/basic/search.html
++++ b/basic/search.html
+@@ -9,7 +9,7 @@
+ #}
+ {%- extends "layout.html" %}
+ {% set title = _('Search') %}
+-{% set script_files = script_files + ['_static/searchtools.js'] %}
++{% set script_files = script_files + ['static/searchtools.js'] %}
+ {% block extrahead %}
+   <script type="text/javascript">
+     jQuery(function() { Search.loadIndex("{{ pathto('searchindex.js', 1) }}"); });
+diff --git a/basic/static/websupport.js b/basic/static/websupport.js
+index 71c0a13..94f8d4e 100644
+--- a/basic/static/websupport.js
++++ b/basic/static/websupport.js
+@@ -667,14 +667,14 @@
+     getCommentsURL: '/_get_comments',
+     acceptCommentURL: '/_accept_comment',
+     deleteCommentURL: '/_delete_comment',
+-    commentImage: '/static/_static/comment.png',
+-    closeCommentImage: '/static/_static/comment-close.png',
+-    loadingImage: '/static/_static/ajax-loader.gif',
+-    commentBrightImage: '/static/_static/comment-bright.png',
+-    upArrow: '/static/_static/up.png',
+-    downArrow: '/static/_static/down.png',
+-    upArrowPressed: '/static/_static/up-pressed.png',
+-    downArrowPressed: '/static/_static/down-pressed.png',
++    commentImage: '/static/static/comment.png',
++    closeCommentImage: '/static/static/comment-close.png',
++    loadingImage: '/static/static/ajax-loader.gif',
++    commentBrightImage: '/static/static/comment-bright.png',
++    upArrow: '/static/static/up.png',
++    downArrow: '/static/static/down.png',
++    upArrowPressed: '/static/static/up-pressed.png',
++    downArrowPressed: '/static/static/down-pressed.png',
+     voting: false,
+     moderator: false
+   };
+diff --git a/default/layout.html b/default/layout.html
+index 6231905..05a031c 100644
+--- a/default/layout.html
++++ b/default/layout.html
+@@ -10,5 +10,5 @@
+ {%- extends "basic/layout.html" %}
+ 
+ {% if theme_collapsiblesidebar|tobool %}
+-{% set script_files = script_files + ['_static/sidebar.js'] %}
++{% set script_files = script_files + ['static/sidebar.js'] %}
+ {% endif %}
+diff --git a/haiku/layout.html b/haiku/layout.html
+index 569763b..6c181f6 100644
+--- a/haiku/layout.html
++++ b/haiku/layout.html
+@@ -36,11 +36,11 @@
+         {%- block haikuheader %}
+         {%- if theme_full_logo != "false" %}
+         <a href="{{ pathto('index') }}">
+-          <img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
++          <img class="logo" src="{{ pathto('static/' + logo, 1) }}" alt="Logo"/>
+         </a>
+         {%- else %}
+         {%- if logo -%}
+-          <img class="rightlogo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
++          <img class="rightlogo" src="{{ pathto('static/' + logo, 1) }}" alt="Logo"/>
+         {%- endif -%}
+         <h1 class="heading"><a href="{{ pathto('index') }}">
+           <span>{{ shorttitle|e }}</span></a></h1>
+diff --git a/pyramid/layout.html b/pyramid/layout.html
+index 1b6d124..e92de35 100644
+--- a/pyramid/layout.html
++++ b/pyramid/layout.html
+@@ -2,7 +2,7 @@
+ 
+ {%- block extrahead %}
+ <!--[if lte IE 6]>
+-<link rel="stylesheet" href="{{ pathto('_static/ie6.css', 1) }}" type="text/css" media="screen" charset="utf-8" />
++<link rel="stylesheet" href="{{ pathto('static/ie6.css', 1) }}" type="text/css" media="screen" charset="utf-8" />
+ <![endif]-->
+ {% endblock %}
+ 
+@@ -11,7 +11,7 @@
+ <div class="header">
+   <div class="logo">
+     <a href="{{ pathto(master_doc) }}">
+-      <img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
++      <img class="logo" src="{{ pathto('static/' + logo, 1) }}" alt="Logo"/>
+     </a>
+   </div>
+ </div>
+diff --git a/pyramid/static/ie6.css b/pyramid/static/ie6.css
+index 74baa5d..ebdcae3 100644
+--- a/pyramid/static/ie6.css
++++ b/pyramid/static/ie6.css
+@@ -1,7 +1,7 @@
+ * html img,
+ * html .png{position:relative;behavior:expression((this.runtimeStyle.behavior="none")&&(this.pngSet?this.pngSet=true:(this.nodeName == "IMG" && this.src.toLowerCase().indexOf('.png')>-1?(this.runtimeStyle.backgroundImage = "none",
+ this.runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" + this.src + "',sizingMethod='image')",
+-this.src = "_static/transparent.gif"):(this.origBg = this.origBg? this.origBg :this.currentStyle.backgroundImage.toString().replace('url("','').replace('")',''),
++this.src = "static/transparent.gif"):(this.origBg = this.origBg? this.origBg :this.currentStyle.backgroundImage.toString().replace('url("','').replace('")',''),
+ this.runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" + this.origBg + "',sizingMethod='crop')",
+ this.runtimeStyle.backgroundImage = "none")),this.pngSet=true)
+ );}
+diff --git a/scrolls/layout.html b/scrolls/layout.html
+index a27f60a..d567401 100644
+--- a/scrolls/layout.html
++++ b/scrolls/layout.html
+@@ -9,8 +9,8 @@
+     :license: BSD, see LICENSE for details.
+ #}
+ {%- extends "basic/layout.html" %}
+-{% set script_files = script_files + ['_static/theme_extras.js'] %}
+-{% set css_files = css_files + ['_static/print.css'] %}
++{% set script_files = script_files + ['static/theme_extras.js'] %}
++{% set css_files = css_files + ['static/print.css'] %}
+ {# do not display relbars #}
+ {% block relbar1 %}{% endblock %}
+ {% block relbar2 %}{% endblock %}
+-- 
+2.1.4
+
